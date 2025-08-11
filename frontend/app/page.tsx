@@ -24,7 +24,6 @@ export default function Home() {
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-console.log({manifest})
   useEffect(() => {
     fetchManifest()
   }, [])
@@ -32,29 +31,16 @@ console.log({manifest})
   const fetchManifest = async () => {
     try {
       setLoading(true)
-      // TODO: Replace with actual CloudFront URL when provided
-      // For now, using dummy manifest data as specified in the spec
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      const dummyManifest: Manifest = {
-        experiments: [
-          {
-            id: "cta-color-001",
-            active: true,
-            variants: [
-              { id: "A", weight: 50 },
-              { id: "B", weight: 50 }
-            ]
-          }
-        ]
+      const url = process.env.NEXT_PUBLIC_MANIFEST_URL || 'https://d279rjimimdjtb.cloudfront.net/a-b-testing-tracker/manifest_08112025.json'
+      const response = await fetch(url, { cache: 'no-store' })
+      if (!response.ok) {
+        throw new Error(`Failed to fetch manifest: ${response.status}`)
       }
-      
-      setManifest(dummyManifest)
-      selectVariants(dummyManifest)
+      const manifestData: Manifest = await response.json()
+      setManifest(manifestData)
+      selectVariants(manifestData)
     } catch (err) {
-      setError('Failed to fetch manifest from S3')
+      setError('Failed to fetch manifest from CloudFront')
       console.error('Error fetching manifest:', err)
     } finally {
       setLoading(false)
@@ -99,7 +85,6 @@ console.log({manifest})
         return <VariantA />
     }
   }
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen text-lg text-gray-600">
@@ -127,7 +112,7 @@ console.log({manifest})
       <div className="max-w-4xl mx-auto">
         <div className="mb-5 text-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            AB Testing Experiment
+            A/B Testing Experiment
           </h1>
           <p className="text-gray-600 text-base">
             Testing different UI variants based on manifest configuration
@@ -145,12 +130,14 @@ console.log({manifest})
           </div>
         ))}
         
-        <div className="mt-8 p-4 bg-white rounded-lg border border-gray-300">
-          <h3 className="text-gray-800 font-semibold mb-3">Manifest Configuration</h3>
-          <pre className="bg-gray-50 p-3 rounded text-xs overflow-auto">
-            {JSON.stringify(manifest, null, 2)}
-          </pre>
-        </div>
+        {manifest && (
+          <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h3 className="text-blue-900 font-semibold mb-3">Manifest Configuration</h3>
+            <pre className="bg-white p-3 rounded text-xs overflow-auto text-gray-800 border border-gray-200">
+              {JSON.stringify(manifest, null, 2)}
+            </pre>
+          </div>
+        )}
       </div>
     </main>
   )

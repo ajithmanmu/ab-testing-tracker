@@ -4,8 +4,8 @@
         "id": "cta-color-001",
         "active": true,
         "variants": [
-          { "id": "A", "weight": 20 },
-          { "id": "B", "weight": 80 }
+          { "id": "A", "weight": 40 },
+          { "id": "B", "weight": 60 }
         ]
       }
     ]
