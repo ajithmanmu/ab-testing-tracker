@@ -1,0 +1,13 @@
+{
+    "experiments": [
+      {
+        "id": "cta-color-001",
+        "active": true,
+        "variants": [
+          { "id": "A", "weight": 20 },
+          { "id": "B", "weight": 80 }
+        ]
+      }
+    ]
+  }
+  
