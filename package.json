@@ -5,11 +5,14 @@
   "private": true,
   "workspaces": [
     "frontend",
+    "backend",
     "infra"
   ],
   "scripts": {
     "dev": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
     "build": "npm run build --workspace=frontend",
-    "start": "npm run start --workspace=frontend"
+    "start": "npm run start --workspace=frontend",
+    "deploy:backend": "npm run deploy --workspace=backend"
   }
 } 

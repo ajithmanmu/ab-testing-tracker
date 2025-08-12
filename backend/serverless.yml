@@ -1,0 +1,30 @@
+service: ab-testing-backend
+frameworkVersion: '3'
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-west-1
+  stage: prod
+  environment:
+    DYNAMODB_TABLE: ab_events
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:Query
+      Resource: arn:aws:dynamodb:us-west-1:${aws:accountId}:table/ab_events
+
+functions:
+  api:
+    handler: src/handlers/collect.handler
+    events:
+      - http:
+          path: /collect
+          method: post
+          cors: true
+
+plugins:
+  - serverless-offline
