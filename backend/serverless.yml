@@ -15,7 +15,9 @@ provider:
         - dynamodb:PutItem
         - dynamodb:GetItem
         - dynamodb:Query
-      Resource: arn:aws:dynamodb:us-west-1:${aws:accountId}:table/ab_events
+      Resource: 
+        - arn:aws:dynamodb:us-west-1:${aws:accountId}:table/ab_events
+        - arn:aws:dynamodb:us-west-1:${aws:accountId}:table/ab_events/index/gsi_experiment_ts
 
 functions:
   api:
