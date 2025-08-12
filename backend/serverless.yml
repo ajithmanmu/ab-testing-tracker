@@ -26,5 +26,35 @@ functions:
           method: post
           cors: true
 
+resources:
+  Resources:
+    AbEvents:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ab_events
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: ts
+            AttributeType: S
+          - AttributeName: experimentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: ts
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: gsi_experiment_ts
+            KeySchema:
+              - AttributeName: experimentId
+                KeyType: HASH
+              - AttributeName: ts
+                KeyType: RANGE
+            Projection:
+              ProjectionType: INCLUDE
+              NonKeyAttributes: [ userId, variant, action ]
+
 plugins:
   - serverless-offline

@@ -32,18 +32,13 @@ exports.handler = async (event) => {
           return res(400, { error: 'Missing required fields: experimentId, userId, variant' });
         }
 
-        const id = experimentId;
-        const user = userId || userIdLegacy;
-        const timestamp = new Date().toISOString();
-        const ttl = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
-
         const item = {
-          experimentId: id,   // PK (must match table)
-          timestamp,          // SK (must match table)
-          userId: user,
-          variant,
-          action,
-          ttl
+          userId: body.userId || body.user_id,
+          ts: new Date().toISOString(),
+          experimentId: body.experimentId || body.experiment_id,
+          variant: body.variant,
+          action: body.action,
+          ttl: Math.floor(Date.now()/1000) + 30*24*60*60
         };
 
         await doc.send(new PutCommand({ TableName: TABLE, Item: item }));
