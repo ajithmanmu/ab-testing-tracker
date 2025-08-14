@@ -5,6 +5,7 @@ import Cookies from 'js-cookie'
 import { v4 as uuidv4 } from 'uuid'
 import VariantA from '../components/VariantA'
 import VariantB from '../components/VariantB'
+import StatsPanel, { type StatsResponse } from '../components/StatsPanel' // STATS: import
 
 interface Variant { id: string; weight: number }
 interface Experiment { id: string; active: boolean; variants: Variant[] }
@@ -20,6 +21,9 @@ export default function Home() {
   const [clickLoading, setClickLoading] = useState<Record<string, boolean>>({})
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string>('')
+  const [statsByExp, setStatsByExp] = useState<Record<string, StatsResponse | null>>({})
+  const [statsLoading, setStatsLoading] = useState<Record<string, boolean>>({})
+  const [statsError, setStatsError] = useState<Record<string, string | null>>({})
 
   // Stable userId via cookie
   useEffect(() => {
@@ -126,6 +130,31 @@ export default function Home() {
     }
   }
 
+  // STATS: fetch per experiment
+  const handleGetStats = async (experimentId: string) => {
+    setStatsError(prev => ({ ...prev, [experimentId]: null }))
+    setStatsLoading(prev => ({ ...prev, [experimentId]: true }))
+    try {
+      const res = await fetch(COLLECT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'get_stats',
+          experimentId
+        })
+      })
+      const json = (await res.json()) as StatsResponse | { error?: string; message?: string }
+      if (!res.ok || (json as any).error) {
+        throw new Error((json as any).error || (json as any).message || `HTTP ${res.status}`)
+      }
+      setStatsByExp(prev => ({ ...prev, [experimentId]: json as StatsResponse }))
+    } catch (e: any) {
+      setStatsError(prev => ({ ...prev, [experimentId]: e?.message ?? 'Failed to fetch stats' }))
+    } finally {
+      setStatsLoading(prev => ({ ...prev, [experimentId]: false }))
+    }
+  }
+
   const renderExperiment = (experimentId: string, variantId: string) => {
     const isLoading = clickLoading[experimentId] || false
     switch (variantId) {
@@ -172,20 +201,45 @@ export default function Home() {
           </p>
         </div>
 
-        {manifest && manifest.experiments.map(experiment => (
-          <div key={experiment.id} className="mb-6">
-            <div className="mb-3 p-2 bg-gray-200 rounded text-sm text-gray-700">
-              Experiment: {experiment.id} |{' '}
-              Variant: {selectedVariants[experiment.id]} |{' '}
-              Weight: {
-                manifest.experiments
-                  .find(e => e.id === experiment.id)
-                  ?.variants.find(v => v.id === selectedVariants[experiment.id])?.weight
-              }%
+        {manifest && manifest.experiments.map(experiment => {
+          const variantId = selectedVariants[experiment.id]
+          const stats = statsByExp[experiment.id]
+          const statsBusy = !!statsLoading[experiment.id]
+          const statsErr = statsError[experiment.id] || null
+
+          return (
+            <div key={experiment.id} className="mb-6">
+              <div className="mb-3 p-2 bg-gray-200 rounded text-sm text-gray-700">
+                Experiment: {experiment.id} |{' '}
+                Variant: {variantId} |{' '}
+                Weight: {
+                  manifest.experiments
+                    .find(e => e.id === experiment.id)
+                    ?.variants.find(v => v.id === variantId)?.weight
+                }%
+              </div>
+
+              {variantId && renderExperiment(experiment.id, variantId)}
+
+              {/* STATS: button + panel */}
+              <div className="mt-3">
+                <button
+                  onClick={() => handleGetStats(experiment.id)}
+                  disabled={statsBusy}
+                  className="px-4 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {statsBusy ? 'Fetching…' : 'Get stats'}
+                </button>
+                {statsErr && (
+                  <div className="mt-2 text-sm text-red-600">
+                    {statsErr}
+                  </div>
+                )}
+                {stats && <StatsPanel data={stats} />}
+              </div>
             </div>
-            {renderExperiment(experiment.id, selectedVariants[experiment.id])}
-          </div>
-        ))}
+          )
+        })}
 
         {manifest && (
           <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
