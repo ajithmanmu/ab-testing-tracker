@@ -1,106 +1,45 @@
-# AB Testing Tracker
+# Infrastructure – Frontend Hosting
 
-Lightweight AB testing tracker with a Next.js frontend, serverless backend, and AWS infrastructure (S3, CloudFront, Lambda, API Gateway).
-
-## Write up
-[Putting AWS Skills to Work: Building an AB Testing Tracker](https://ajithmanmu.hashnode.dev/putting-aws-skills-to-work-building-an-ab-testing-tracker)
-
-
-## Structure
-
-```
-ab-testing-tracker/
-├── frontend/   # Next.js app for variant rendering
-├── backend/    # Lambda handlers & serverless config
-├── infra/      # Terraform for S3, CloudFront, Lambda, API Gateway
-```
-
-## Features
-
-* **Next.js Frontend** – Renders variants based on manifest.json from S3/CloudFront
-* **Serverless Backend** – Handles event logging and stats retrieval
-* **Infrastructure** – Terraform-managed AWS stack (S3, CloudFront, Lambda, API Gateway)
-
-## Prerequisites
-
-* Node.js 18+
-* AWS CLI configured
-* Terraform installed
+This Terraform configuration sets up the infrastructure for hosting the frontend application as a static website. The setup provisions an **S3 bucket** (to store static files), a **CloudFront distribution** (to serve the files globally with low latency), and an **Origin Access Identity (OAI)** to securely allow CloudFront to read from the private S3 bucket. The manifest file is also served through CloudFront so the frontend can fetch it without exposing the S3 bucket publicly.
 
 ## Commands
 
-**Run frontend**
+* **Initialize Terraform**
+
+  ```bash
+  terraform init
+  ```
+
+* **Preview changes**
+
+  ```bash
+  terraform plan
+  ```
+
+* **Apply changes (create/update resources)**
+
+  ```bash
+  terraform apply
+  ```
+
+* **Destroy infrastructure**
+
+  ```bash
+  terraform destroy
+  ```
+
+## Environment Variables
+
+Before running Terraform commands, ensure you have AWS credentials configured. You can either use the AWS CLI profile or set environment variables:
 
 ```bash
-cd frontend
-npm run dev
+export AWS_ACCESS_KEY_ID=your_access_key_id
+export AWS_SECRET_ACCESS_KEY=your_secret_access_key
+export AWS_DEFAULT_REGION=us-west-1
 ```
 
-**Run backend**
+Or, if you have an AWS CLI profile set up:
 
 ```bash
-cd backend
-npm run dev
-```
-
-**Deploy backend**
-
-```bash
-cd backend
-npm run deploy
-```
-## Architecture
-
-![Alt text](../architecture.png)
-
-
-
-## API Endpoints
-
-Base URL depends on deployment:
-
-* **Local**: `http://localhost:3000/collect` (via `serverless offline start`)
-* **Production**: API Gateway Invoke URL from `serverless deploy`
-
----
-
-### 1️⃣ Log Impression
-
-```bash
-curl -X POST https://<BASE_URL>/collect \
-  -H "Content-Type: application/json" \
-  -d '{
-    "action": "log_impression",
-    "experimentId": "cta-color-001",
-    "userId": "u1",
-    "variant": "A"
-  }'
-```
-
----
-
-### 2️⃣ Log Click
-
-```bash
-curl -X POST https://<BASE_URL>/collect \
-  -H "Content-Type: application/json" \
-  -d '{
-    "action": "log_click",
-    "experimentId": "cta-color-001",
-    "userId": "u1",
-    "variant": "A"
-  }'
-```
-
----
-
-### 3️⃣ Get Stats
-
-```bash
-curl -X POST https://<BASE_URL>/collect \
-  -H "Content-Type: application/json" \
-  -d '{
-    "action": "get_stats",
-    "experimentId": "cta-color-001"
-  }'
+export AWS_PROFILE=your_profile_name
 ```

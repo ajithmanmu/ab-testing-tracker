@@ -1,104 +1,106 @@
 # AB Testing Tracker
 
-A lightweight AB testing tracker with frontend and infrastructure components that supports dynamic variant rendering based on manifest configuration.
+Lightweight AB testing tracker with a Next.js frontend, serverless backend, and AWS infrastructure (S3, CloudFront, Lambda, API Gateway).
 
-## Project Structure
+## Write up
+[Putting AWS Skills to Work: Building an AB Testing Tracker](https://ajithmanmu.hashnode.dev/putting-aws-skills-to-work-building-an-ab-testing-tracker)
+
+
+## Structure
 
 ```
 ab-testing-tracker/
-├── frontend/          # NextJS application with AB testing variants
-├── infra/            # Infrastructure configurations (Lambda + API Gateway)
-├── package.json      # Root workspace configuration
-└── README.md         # This file
+├── frontend/   # Next.js app for variant rendering
+├── backend/    # Lambda handlers & serverless config
+├── infra/      # Terraform for S3, CloudFront, Lambda, API Gateway
 ```
 
 ## Features
 
-- **Frontend**: Lightweight NextJS app that fetches manifest.json from S3/CloudFront
-- **AB Testing**: Dynamic variant rendering based on weight distribution
-- **Infrastructure**: Lambda functions behind API Gateway (planned)
-- **Minimalistic Design**: Clean, simple interface with weight-based variant selection
+* **Next.js Frontend** – Renders variants based on manifest.json from S3/CloudFront
+* **Serverless Backend** – Handles event logging and stats retrieval
+* **Infrastructure** – Terraform-managed AWS stack (S3, CloudFront, Lambda, API Gateway)
 
-## Quick Start
+## Prerequisites
 
-### Prerequisites
+* Node.js 18+
+* AWS CLI configured
+* Terraform installed
 
-- Node.js 18+ 
-- npm or yarn
+## Commands
 
-### Installation
+**Run frontend**
 
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Start development server:
-```bash
-npm run dev
-```
-
-This will start the frontend server on port 3000.
-
-### Individual Services
-
-**Frontend (NextJS)**
 ```bash
 cd frontend
 npm run dev
-# Runs on http://localhost:3000
 ```
 
-## AB Testing Features
+**Run backend**
 
-### Manifest Configuration
-The application fetches a `manifest.json` file that defines AB testing experiments:
-
-```json
-{
-  "experiments": [
-    {
-      "id": "cta-color-001",
-      "active": true,
-      "variants": [
-        { "id": "A", "weight": 50 },
-        { "id": "B", "weight": 50 }
-      ]
-    }
-  ]
-}
+```bash
+cd backend
+npm run dev
 ```
 
-### Variant Rendering
-- **Variant A**: Blue gradient background with "Get Started" button
-- **Variant B**: Pink gradient background with "Start Now" button
-- Weight-based selection ensures proper traffic distribution
-- Real-time variant display with experiment information
+**Deploy backend**
 
-## Development
+```bash
+cd backend
+npm run deploy
+```
+## Architecture
 
-### Frontend
-- NextJS 14 with App Router
-- TypeScript support
-- Dynamic variant rendering based on manifest
-- Weight-based variant selection algorithm
-- Clean, minimalistic UI
+![Alt text](architecture.png)
 
-### Infrastructure (Planned)
-- Lambda functions for API endpoints
-- API Gateway for REST API
-- S3/CloudFront for manifest storage
-- CI/CD pipeline setup
 
-## Next Steps
 
-1. **Lambda Functions**: Set up Lambda functions for API endpoints
-2. **API Gateway**: Configure API Gateway for REST API
-3. **S3/CloudFront Configuration**: Add actual CloudFront URL for manifest.json
-4. **Deployment**: Set up production deployment pipeline
-5. **Monitoring**: Add logging and monitoring capabilities
-6. **Analytics**: Track variant performance and user interactions
+## API Endpoints
 
-## Contributing
+Base URL depends on deployment:
 
-This is a minimalistic setup following the spec requirements. The project uses dummy data as specified and is ready for Lambda/API Gateway configuration when provided. The AB testing system supports dynamic variant rendering based on weight distribution.
+* **Local**: `http://localhost:3000/collect` (via `serverless offline start`)
+* **Production**: API Gateway Invoke URL from `serverless deploy`
+
+---
+
+### 1️⃣ Log Impression
+
+```bash
+curl -X POST https://<BASE_URL>/collect \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "log_impression",
+    "experimentId": "cta-color-001",
+    "userId": "u1",
+    "variant": "A"
+  }'
+```
+
+---
+
+### 2️⃣ Log Click
+
+```bash
+curl -X POST https://<BASE_URL>/collect \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "log_click",
+    "experimentId": "cta-color-001",
+    "userId": "u1",
+    "variant": "A"
+  }'
+```
+
+---
+
+### 3️⃣ Get Stats
+
+```bash
+curl -X POST https://<BASE_URL>/collect \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "get_stats",
+    "experimentId": "cta-color-001"
+  }'
+```
