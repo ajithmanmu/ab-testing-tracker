@@ -3,7 +3,7 @@
 Lightweight AB testing tracker with a Next.js frontend, serverless backend, and AWS infrastructure (S3, CloudFront, Lambda, API Gateway).
 
 ## Write up
-[Putting AWS Skills to Work: Building an AB Testing Tracker](https://ajithmanmu.hashnode.dev/putting-aws-skills-to-work-building-an-ab-testing-tracker)
+[Putting AWS Skills to Work: Building an AB Testing Tracker](https://forem.com/ajithmanmu/putting-aws-skills-to-work-building-an-ab-testing-tracker-34c)
 
 
 ## Structure
